@@ -51,7 +51,7 @@
 </head>
 
 <body>
-  <h1 id="header">Index Of C:/nodejs/www{{ path }}</h1>
+  <h1 id="header">Index Of C:/nodejs/www</h1>
   <table>
     <thead>
       <tr class="header" id="theader">
@@ -62,29 +62,12 @@
       </tr>
     </thead>
     <tbody id="tbody">
-      <!-- 用 files 陣列跑回圈, 而 {{$value}} 代表陣列內的每個成員 -->
       {{ each files }}
       <tr>
-        <!-- 判斷 icon 是資料夾或是一般檔案 -->
-        {{ if (/\./.test($value.fileName))}}
-          <td>
-            <a 
-            class="icon file" 
-            href="http://127.0.0.1:{{ port + path + '/' + $value.fileName }}">
-            {{ $value.fileName }}
-            </a>
-          </td>
-          {{ else }}
-          <td>
-            <a 
-            class="icon dir" 
-            href="http://127.0.0.1:{{ port + path + '/' + $value.fileName }}">{{ $value.fileName }}
-            </a>
-          </td>
-        {{ /if }}
-        <td class="detailsColumn">{{ $value.size }} Byte</td>
-        <td class="detailsColumn">{{ $value.createTime }}</td>
-        <td class="detailsColumn">{{ $value.mutateTime }}</td>
+        <td><a class="icon file" href="#">{{ $value }}</a></td>
+        <td class="detailsColumn">XXX Byte</td>
+        <td class="detailsColumn">2019-9-11 11:3</td>
+        <td class="detailsColumn">2019-9-11 11:3</td>
       </tr>
       {{/each}}
     </tbody>
