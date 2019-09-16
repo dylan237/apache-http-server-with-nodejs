@@ -60,7 +60,7 @@ server.on('request', function (req, res) {
   var filePath
   url === '/' ? filePath = '/index.html' : filePath = url
   // 開放資源資料夾 + 客戶端請求路徑 (靜態資源絕對路徑)
-  fullPath = wwwDir + filePath
+  var fullPath = wwwDir + filePath
 
   // fs.access => 判斷該請求路徑是否存在
   fs.access(fullPath, function (err) {
@@ -72,40 +72,41 @@ server.on('request', function (req, res) {
       // lstatSync(資源路徑).isDirectory() => 判斷是否為資料夾
       if (fs.statSync(fullPath).isDirectory()) {
         // 路徑為資料夾時，渲染抓資料夾內容，並渲染阿帕契目錄頁面
+        // fs.readdir => 取資料夾內的成員
         console.log('路徑為資料夾')
-        fs.readFile('./template.html', function (err, templateFile) {
+        fs.readdir(fullPath, function (err, dirFiles) {
           if (err) {
             toErrorPage()
           }
-          // fs.readdir => 取資料夾內的成員
-          fs.readdir(fullPath, function (err, dirFiles) {
-            if (err) {
-              toErrorPage()
-            }
-            // 檢查該資料夾內是否有名為index的檔案，有則建立一個indexItem物件
-            var indexItem = {}
-            dirFiles.forEach((file) => {
-              if (/index\./.test(file)) {
-                indexItem = {
-                  hasIndexFile: true,
-                  fileName: file
-                }
+        // 檢查該資料夾內是否有名為index的檔案，有則建立一個indexItem物件
+          var indexItem = {}
+          dirFiles.forEach((file) => {
+            if (/index\./.test(file)) {
+              indexItem = {
+                hasIndexFile: true,
+                fileName: file
               }
+            }
+          })
+          // 如果有index，則回傳該檔案
+          if (indexItem.hasIndexFile) {
+            var indexPathLocation = fullPath + '/' + indexItem.fileName
+            fs.readFile(indexPathLocation, function(err, indexFile) {
+              if (err) {
+                toErrorPage()
+              }
+              res.setHeader('Content-type', returnContentType(indexItem.fileName))
+              res.end(indexFile)
             })
-            // 如果有index，則回傳該檔案
-            if (indexItem.hasIndexFile) {
-              var indexPathLocation = fullPath + '/' + indexItem.fileName
-              fs.readFile(indexPathLocation, function(err, indexFile) {
-                if (err) {
-                  toErrorPage()
-                }
-                res.setHeader('Content-type', returnContentType(indexItem.fileName))
-                res.end(indexFile)
-              })
-            // 若沒有則印出資料夾成員頁面
-            } else {
+          // 若沒有則印出資料夾成員頁面
+          } else {
+            fs.readFile('./template.html', function (err, templateFile) {
+              if (err) {
+                toErrorPage()
+              }
               // 取得資料夾內檔案大小與修改日期，filesDetailInfo === 所有內部檔案資料集合
               var filesDetailInfo = dirFiles.map((file) => {
+                console.log('statSync', fs.statSync(fullPath + '/' + file))
                 // fs.statSync => 取得檔案或資料夾的詳細資料
                 var statSync = fs.statSync(fullPath + '/' + file)
                 var fileDetail = {
@@ -124,8 +125,8 @@ server.on('request', function (req, res) {
                 files: filesDetailInfo
               })
               res.end(htmlStr)
-            }
-          })
+            })
+          }
         })
       } else {
         // 路徑為檔案時，渲染該檔案
